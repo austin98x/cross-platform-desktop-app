@@ -42,6 +42,61 @@ endmacro()
 				#[BUILD_DEST_PATH <destpath>]    #package output path
 				#)
 macro(x_package _name)
+	cmake_parse_arguments(_WP 
+		"" 
+		"BUILD_DEST_PATH" 
+		"" 
+		${ARGN})
+	if(DEFINED _WP_BUILD_DEST_PATH)
+		set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${X_OUTPUT_ROOT_DIRECOTRY}/${_WP_BUILD_DEST_PATH}")
+		set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+		set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${X_OUTPUT_ROOT_DIRECOTRY}/${_WP_BUILD_DEST_PATH}")
+		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+	endif()
+
+	set(_argn ${_WP_UNPARSED_ARGUMENTS})
+	set(pkg_types "NONE|STATIC|SHARED|MODULE|EXECUTABLE|CONSOLE")
+	_token_radio_option(_argn ${pkg_types} "NONE" _type)
+
+	if(_argn)
+		message(FATAL_ERROR "\nthe package type your set could not find in TypeList.\nThe correct TypeList is ${pkg_types}\n")
+	endif()
+	
+	set(X_CURRENT_PACKAGE_NAME "${_name}")
+	set(X_CURRENT_PACKAGE_TYPE "${_type}")
+	set(X_CURRENT_PACKAGE_SRCS)
+	set(X_CURRENT_PACKAGE_INCLUDE_PKG_DIRS)
+	set(X_CURRENT_PACKAGE_LINK_PKGS)
+	set(X_CURRENT_PACKAGE_LINK_LIBRARYS)
+	set(X_CURRENT_PACKAGE_DEPEND_PKGS)
+	set(X_CURRENT_PACKAGE_DEFINITIONS)
+	set(X_CURRENT_PACKAGE_HAS_PUBLIC_HEADER)
+
+	set(X_CURRENT_FILE_VERSION)
+	set(X_CURRENT_PRODUCT_VERSION)
+	set(X_CURRENT_FILE_DESCRIPTION)
+
+	set(X_EXECUTABLE_ENTRYPOINT "main")
+	set(X_CURRENT_PACKAGE_RUNTIME_LIBRARY_TYPE "MD")
+	if("!${CMAKE_BUILD_TYPE}" STREQUAL "!Debug")
+		set(X_CURRENT_PACKAGE_RUNTIME_LIBRARY_TYPE "MDd")
+	endif()
+	set(X_CURRENT_PACKAGE_OPTIMIZATION "${CXX_OPTIMIZATION_MINSIZE_FLAGS}")
+	if("!${CMAKE_BUILD_TYPE}" STREQUAL "!Debug")
+		set(X_CURRENT_PACKAGE_OPTIMIZATION "${CXX_OPTIMIZATION_NONE_FLAGS}")
+	endif()
+
+	x_include_directories(${CMAKE_CURRENT_BINARY_DIR})
+	x_include_directories(".")
+
+	if("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "STATIC!")
+		list(APPEND X_CURRENT_PACKAGE_DEFINITIONS "_LIB")
+	elseif("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "SHARED!"
+		OR "${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "MODULE!")
+		list(APPEND X_CURRENT_PACKAGE_DEFINITIONS "_USRDLL")
+	endif()
 endmacro(x_package)
 
 # x_add_definitions(def1 def2 ...)
@@ -56,6 +111,7 @@ macro(x_add_definitions)
 		OR "${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "MODULE!")
 		list(REMOVE_ITEM X_CURRENT_PACKAGE_DEFINITIONS "_LIB")
 	endif()
+	#message(STATUS ${X_CURRENT_PACKAGE_DEFINITIONS})
 endmacro()
 
 # x_include_directories(dir1 dir2 ...)
@@ -63,10 +119,28 @@ endmacro()
 macro(x_include_directories)
 	_args_system_filter(_cur_system_argn ${ARGN})
 	include_directories(${_cur_system_argn})
+	#message(STATUS ${_cur_system_argn})
 endmacro()
 
 # x_include_packages(package1 package2 ...)
+#					support platform judge: WIN, LINUX.
 macro(x_include_packages)
+	_args_system_filter(_cur_system_argn ${ARGN})
+	foreach(_pkg ${_cur_system_argn})
+		if(NOT TARGET ${_pkg})
+			message(FATAL_ERROR "${_pkg} is not a valid package.")
+		endif()
+		get_property(_pkg_type TARGET ${_pkg} PROPERTY X_PACKAGE_TYPE)
+		if(NOT ${_pkg_type} STREQUAL "NONE")
+			get_property(_pub_dir TARGET ${_pkg} PROPERTY X_PUBLIC_HEADER_DIR)
+			if(NOT _pub_dir)
+				message(WARNING "${_pkg} do not has public header.")
+			endif()
+			include_directories(${_pub_dir})
+			list(APPEND X_CURRENT_PACKAGE_DEPEND_PKGS ${_pkg})
+			list(APPEND X_CURRENT_PACKAGE_INCLUDE_PKG_DIRS ${_pub_dir})
+		endif()
+	endforeach()
 endmacro()
 
 # x_add_sources([PCH stdafx.h stdafx.cpp] a.h a.cpp b.h b.cpp ...)
@@ -88,10 +162,14 @@ macro(x_add_sources)
 		endif()
 	endforeach()
 	list(APPEND X_CURRENT_PACKAGE_SRCS ${_cur_system_argn} "X_SOURCE_SEPARATOR")
+	#message(STATUS ${X_CURRENT_PACKAGE_SRCS})
 endmacro()
 
 # x_link_packages(package1 package2 ...)
+#					support platform judge: WIN, LINUX.
 macro(x_link_packages)
+	_args_system_filter(_cur_system_argn ${ARGN})
+	list(APPEND X_CURRENT_PACKAGE_LINK_PKGS ${_cur_system_argn})
 endmacro()
 
 # x_declare_fileinfo([FILE_DESCRIPTION "description"] #empty if not write
@@ -134,6 +212,160 @@ endmacro()
 
 # x_end_package()
 macro(x_end_package)
+	if(OS_WIN)
+		_generate_binary_info_file()
+	endif()
+
+	set(_srcs_for_compile ${X_CURRENT_PACKAGE_SRCS})
+	_deal_sources(_srcs_for_compile)
+
+	if("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "STATIC!")
+		add_library(${X_CURRENT_PACKAGE_NAME} STATIC ${_srcs_for_compile})
+	elseif("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "SHARED!")
+		add_library(${X_CURRENT_PACKAGE_NAME} SHARED ${_srcs_for_compile})
+	elseif("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "MODULE!")
+		add_library(${X_CURRENT_PACKAGE_NAME} MODULE ${_srcs_for_compile})
+	elseif("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "EXECUTABLE!")
+		if(OS_WIN)
+			add_executable(${X_CURRENT_PACKAGE_NAME} WIN32 ${_srcs_for_compile})
+			if(X_EXECUTABLE_ENTRYPOINT)
+				_append_target_property_string(${X_CURRENT_PACKAGE_NAME} LINK_FLAGS " /ENTRY:\"${X_EXECUTABLE_ENTRYPOINT}CRTStartup\" ")
+			endif()
+		else()
+			add_executable(${X_CURRENT_PACKAGE_NAME} ${_srcs_for_compile})
+		endif()
+	elseif("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "CONSOLE!")
+		add_executable(${X_CURRENT_PACKAGE_NAME} ${_srcs_for_compile})
+	elseif("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "NONE!")
+		add_custom_target(${X_CURRENT_PACKAGE_NAME} ALL
+			DEPENDS ${_srcs_for_compile} ${X_CURRENT_PACKAGE_GENERATEE_FILES}
+			SOURCES ${_srcs_for_compile}
+			)
+	else()
+		message(FATAL_ERROR "Unknown package type.\n")
+	endif()
+
+	_disable_analysis_for_generated_file(_srcs_for_compile)
+
+	_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+			COMPILE_FLAGS " ${X_CURRENT_PACKAGE_OPTIMIZATION} ")
+	if(OS_WIN)
+		_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+				COMPILE_FLAGS " /${X_CURRENT_PACKAGE_RUNTIME_LIBRARY_TYPE} ")
+	endif()
+	
+	if(OS_WIN AND 
+		("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "EXECUTABLE!" OR 
+		"${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "CONSOLE!"))
+		
+		if(X_UAC_EXECUTION_LEVEL)
+			_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+					LINK_FLAGS " /level='${X_UAC_EXECUTION_LEVEL}' ")
+		endif()
+		if(X_CURRENT_PACKAGE_DEP)
+			_append_target_property_string(${X_CURRENT_PACKAGE_NAME} LINK_FLAGS " /${X_CURRENT_PACKAGE_DEP} ")
+		endif()
+	endif()
+	
+	if(OS_WIN)
+		if (DEFINED X_CURRENT_EXTRA_LINK_FLAGS)
+			_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+					LINK_FLAGS " ${X_CURRENT_EXTRA_LINK_FLAGS}")
+		endif()
+	endif()
+	
+	if(OS_WIN AND
+		DEFINED CMAKE_USE_LTCG AND
+		DEFINED X_CURRENT_USE_PGO AND
+		"!${CMAKE_BUILD_TYPE}" STREQUAL "!Release"
+		)
+		_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+					COMPILE_FLAGS " /GL /Gy")
+
+		if("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "EXECUTABLE!" OR
+			"${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "SHARED!")
+			if("!${CMAKE_USE_LTCG}" STREQUAL "!PGInstrument")
+				_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+						LINK_FLAGS " /LTCG:PGInstrument")
+			elseif("!${CMAKE_USE_LTCG}" STREQUAL "!PGOptimize")
+				_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+						LINK_FLAGS " /LTCG:PGOptimize")
+			else()
+				_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+						LINK_FLAGS " /LTCG")
+			endif()
+		endif()
+	endif()
+
+	if(OS_WIN)
+		if (DEFINED X_CURRENT_DOTNET_CLR)
+			_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+					VS_DOTNET_TARGET_FRAMEWORK_VERSION "v2.0")
+
+			_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+					VS_GLOBAL_KEYWORD "ManagedCProj")
+			
+			_append_target_property_string(${X_CURRENT_PACKAGE_NAME} 
+					COMPILE_FLAGS "/clr /EHa")
+
+			if(CMAKE_CXX_FLAGS_DEBUG MATCHES "/RTC1")
+				string(REPLACE "/RTC1" " " CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+			endif()
+
+			if(CMAKE_CXX_FLAGS MATCHES "/EHsc")
+				string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+			endif()
+		endif()
+	endif()	
+
+	if(OS_LINUX)
+		_find_split_symbol()
+		if("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "EXECUTABLE!" OR
+			"${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "CONSOLE!")
+			set(_out_file ${X_CURRENT_PACKAGE_NAME})
+			add_custom_command(TARGET ${X_CURRENT_PACKAGE_NAME} POST_BUILD
+				COMMAND ${X_SPLIT_SYMBOL} ${X_SPLIT_SYMBOL_ARGS} ${_out_file}
+				WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+				)
+		endif()
+		if("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "SHARED!" OR
+			"${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "MODULE!")
+			set(_out_file "lib${X_CURRENT_PACKAGE_NAME}.so")
+			add_custom_command(TARGET ${X_CURRENT_PACKAGE_NAME} POST_BUILD
+				COMMAND ${X_SPLIT_SYMBOL} ${X_SPLIT_SYMBOL_ARGS} ${_out_file}
+				WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+				)
+		endif()
+	endif()
+
+	if(X_CURRENT_PACKAGE_DEFINITIONS)
+		set_property(TARGET ${X_CURRENT_PACKAGE_NAME} 
+				PROPERTY COMPILE_DEFINITIONS "${X_CURRENT_PACKAGE_DEFINITIONS}")
+	endif()
+
+	if(X_CURRENT_PACKAGE_LINK_LIBRARYS)
+		target_link_libraries(${X_CURRENT_PACKAGE_NAME} ${X_CURRENT_PACKAGE_LINK_LIBRARYS})
+		set_property(TARGET ${X_CURRENT_PACKAGE_NAME} PROPERTY X_LINK_LIBRARYS ${X_CURRENT_PACKAGE_LINK_LIBRARYS})
+	endif()
+	if(X_CURRENT_PACKAGE_LINK_PKGS)
+		set(X_PACKAGE_LINK_DEPENDS ${X_PACKAGE_LINK_DEPENDS} 
+			${X_CURRENT_PACKAGE_NAME}
+			${X_CURRENT_PACKAGE_LINK_PKGS}
+			"X_PACKAGE_LINK_DEPENDS_SEPARATOR"
+			CACHE INTERNAL "" FORCE)
+	endif()
+	if(X_CURRENT_PACKAGE_DEPEND_PKGS)
+		add_dependencies(${X_CURRENT_PACKAGE_NAME} ${X_CURRENT_PACKAGE_DEPEND_PKGS})
+	endif()
+
+	if(X_CURRENT_PACKAGE_HAS_PUBLIC_HEADER)
+		set(_pub_dir "${CMAKE_CURRENT_BINARY_DIR}/include")
+		set_property(TARGET ${X_CURRENT_PACKAGE_NAME} PROPERTY X_PUBLIC_HEADER_DIR "${_pub_dir}")
+	endif()
+
+	set_property(TARGET ${X_CURRENT_PACKAGE_NAME} PROPERTY X_PACKAGE_TYPE "${X_CURRENT_PACKAGE_TYPE}")
+
+	set(X_PACKAGE_INFO_LIST "${X_PACKAGE_INFO_LIST}${X_CURRENT_PACKAGE_NAME}    ${X_CURRENT_PACKAGE_TYPE}    ${CMAKE_CURRENT_SOURCE_DIR};" CACHE INTERNAL "" FORCE)
 endmacro()
 
 # x_final_deal()
@@ -202,6 +434,8 @@ endmacro()
 #                                     PRESETTING PART                                              #
 ####################################################################################################
 set(X_CONFIG_TEMPLATE_DIR "${X_CMAKE_DIR}/config_template")
+set(X_CONFIGURE_FILE_DIRECTORY "${CMAKE_BINARY_DIR}/x_configure_file")
+set(X_PACKAGE_INFO_LIST "" CACHE INTERNAL "app package info list for project_info.txt" FORCE)
 # In cmake:
 #	*.a *.lib is archive
 #	*.so *.dll is library

@@ -66,3 +66,206 @@ macro(_recache_vars)
 		endif()
 	endforeach()
 endmacro()
+
+# find _radio_options in _input and then remove it in _input
+# if no found _default is returned. if more then one found error occused
+# example: _token_radio_option(ARGN "AAA|BBB|CC" "BBB" _result)
+function(_token_radio_option _input _radio_options _default _output)
+	set(_l ${${_input}})
+	string(REGEX MATCHALL "[^|]+" _opts "${_radio_options}")
+	set(_nhit 0)
+	set(_hit)
+	foreach(_x ${_l})
+		list(FIND _opts "${_x}" _idx)
+		if(NOT _idx EQUAL -1)
+			math(EXPR _nhit "${_nhit}+1")
+			set(_hit "${_x}")
+		endif()
+	endforeach()
+	if(_nhit EQUAL 0)
+		set(${_output} ${_default} PARENT_SCOPE)
+	elseif(_nhit EQUAL 1)
+		set(${_output} ${_hit} PARENT_SCOPE)
+		list(REMOVE_ITEM _l "${_hit}")
+		set(${_input} ${_l} PARENT_SCOPE)
+	else()
+		message(FATAL_ERROR "radio option check error!")
+	endif()
+endfunction()
+
+macro(_generate_binary_info_file)
+	if(NOT "${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "NONE!" AND
+		NOT	"${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "STATIC!")
+		if(X_CURRENT_FILE_VERSION)
+			set(X_FILE_VERSION ${X_CURRENT_FILE_VERSION})
+		elseif(FILE_VERSION)
+			set(X_FILE_VERSION ${FILE_VERSION})
+		endif()		
+		string(REPLACE "." "," X_FILE_VERSION ${X_FILE_VERSION})
+		string(REPLACE "." "," X_PRODUCT_VERSION ${PRODUCT_VERSION})
+
+		string(TOLOWER ${X_CURRENT_PACKAGE_NAME} _lower_package_name)
+
+		if(X_CURRENT_PRODUCT_VERSION)
+			set(X_PRODUCT_VERSION ${X_CURRENT_PRODUCT_VERSION})
+		endif()
+
+		set(X_FILE_DESCRIPTION ${X_CURRENT_FILE_DESCRIPTION})
+		set(X_INTERNAL_NAME ${X_CURRENT_PACKAGE_NAME})
+		set(X_COMPANY_NAME ${X_CURRENT_COMPANY_NAME})
+		set(X_COPYRIGHT ${X_CURRENT_COPY_RIGHT})
+		set(X_PRODUCT_NAME ${X_CURRENT_PRODUCT_NAME})
+
+		set(_rc_file_temp "${X_CONFIG_TEMPLATE_DIR}/Version.rc.in")
+		if(X_CURRENT_VERSION_RC_NAME_AFFIX)
+			set(_rc_file "${CMAKE_CURRENT_BINARY_DIR}/Version_${X_CURRENT_VERSION_RC_NAME_AFFIX}.rc")
+		else()
+			set(_rc_file "${CMAKE_CURRENT_BINARY_DIR}/Version.rc")
+		endif()
+		configure_file(${_rc_file_temp} ${_rc_file}.tmp)
+		if("${_rc_file}.tmp" IS_NEWER_THAN "${_rc_file}" AND NOT "!${CMAKE_USE_LTCG}" STREQUAL "!PGOptimize")
+			_convert_file_code("UTF-8" "${_rc_file}.tmp" "UTF-16LE" "${_rc_file}")
+		endif()
+		x_add_sources(${_rc_file})
+	endif()	
+endmacro()
+
+macro(_deal_sources_group _srcs_ref _idl_gen_ref _group_idx)
+	set(_wdsg_srcs ${${_srcs_ref}})
+
+	set(_pch_header "")
+	set(_pch_source "")
+
+	list(FIND _wdsg_srcs "PCH" _pch_idx)
+	if(NOT _pch_idx EQUAL -1)
+		list(REMOVE_AT _wdsg_srcs ${_pch_idx})
+		list(GET _wdsg_srcs ${_pch_idx} _pch_header)
+		list(REMOVE_AT _wdsg_srcs ${_pch_idx})
+		list(GET _wdsg_srcs ${_pch_idx} _pch_source)
+		list(REMOVE_AT _wdsg_srcs ${_pch_idx})
+	endif()
+
+	if(_pch_header)
+		_deal_pch(_wdsg_srcs ${_pch_header} ${_pch_source} ${_idl_gen_ref})
+	endif()	
+
+	set(${_srcs_ref} ${_wdsg_srcs})
+endmacro()
+
+macro(_deal_pch _srcs_ref _pch_header _pch_source _idl_gen_ref)
+	set(_deal_pch_srcs ${${_srcs_ref}})
+	if(MSVC)
+		if(CMAKE_GENERATOR MATCHES "^Visual Studio")
+			foreach(_x ${_deal_pch_srcs})
+				if(_x MATCHES "(\\.cpp$|\\.cc$|\\.cxx$)")
+					set_property(SOURCE "${_x}" PROPERTY COMPILE_FLAGS "/Yu\"${_pch_header}\"")
+				endif()
+			endforeach()
+			list(APPEND _deal_pch_srcs ${_pch_header} ${_pch_source})
+			set_property(SOURCE "${_pch_source}" PROPERTY COMPILE_FLAGS "/Yc\"${_pch_header}\"")
+		else()
+			set(_pch_pch ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${X_CURRENT_PACKAGE_NAME}.dir/${_pch_header}.pch)
+			set(_pch_obj ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${X_CURRENT_PACKAGE_NAME}.dir/${_pch_source}.obj)
+			_get_compile_args(CXX _args)
+			_get_pdb_output_fullpath(_pdb_pos)
+			foreach(_x ${_deal_pch_srcs})
+				if(_x MATCHES "(\\.cpp$|\\.cc$|\\.cxx$)")
+					get_property(_flags SOURCE "${_x}" PROPERTY COMPILE_FLAGS)
+					set_property(SOURCE "${_x}" 
+						PROPERTY COMPILE_FLAGS "${_flags} /Yu\"${_pch_header}\" /Fp\"${_pch_pch}\"")
+					get_property(_obj_dep SOURCE "${_x}" PROPERTY OBJECT_DEPENDS)
+					if(_obj_dep)
+						set(_obj_dep "${_obj_dep};")
+					endif()
+					set_property(SOURCE "${_x}" PROPERTY OBJECT_DEPENDS "${_obj_dep}${_pch_pch}")
+				endif()
+			endforeach()
+			list(APPEND _deal_pch_srcs ${_pch_header}) # pch's source do not add back to src list
+			list(APPEND X_CURRENT_PACKAGE_LINK_LIBRARYS "${_pch_obj}")
+			add_custom_command(
+				OUTPUT ${_pch_pch} ${_pch_obj}
+				COMMAND ${CMAKE_CXX_COMPILER} /c ${_args} ${X_CURRENT_PACKAGE_OPTIMIZATION} /Yc\"${_pch_header}\" 
+						/Fp\"${_pch_pch}\" /Fd\"${_pdb_pos}\" /Fo\"${_pch_obj}\"
+						"${CMAKE_CURRENT_SOURCE_DIR}/${_pch_source}"
+				MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_pch_source}
+				IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_pch_source}
+				DEPENDS ${${_idl_gen_ref}} # some of pch header depends idl generated file, so...
+				COMMENT "Creating Precompiler header..."
+				)
+		endif()
+	else()
+		_get_compile_args(CXX _args)
+		# pch's source do not used, build same as normal source file.
+		list(APPEND _deal_pch_srcs ${_pch_header} ${_pch_source}) 
+		_create_include_ref("${_pch_header}" "${CMAKE_CURRENT_BINARY_DIR}/${_pch_header}")
+		set(_pch_pch "${CMAKE_CURRENT_BINARY_DIR}/${_pch_header}.gch")
+		foreach(_x ${_deal_pch_srcs})
+			if(_x MATCHES "(\\.cpp$|\\.cc$|\\.cxx$)")
+				set_property(SOURCE "${_x}" PROPERTY OBJECT_DEPENDS "${_pch_pch}")
+			endif()
+		endforeach()
+		if ("${CMAKE_GENERATOR}!" STREQUAL "Ninja!")
+			if("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "SHARED!")
+				set(_args ${_args} -D${X_CURRENT_PACKAGE_NAME}_EXPORTS)
+			endif()
+			add_custom_command(
+				OUTPUT ${_pch_pch}
+				COMMAND ${X_COMPILER_LEADER} ${CMAKE_CXX_COMPILER} -x c++-header ${_args} ${X_CURRENT_PACKAGE_OPTIMIZATION} "${CMAKE_CURRENT_SOURCE_DIR}/${_pch_header}" -o "${_pch_pch}"
+				MAIN_DEPENDENCY ${_pch_header}
+				IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_pch_header}
+				DEPENDS ${${_idl_gen_ref}} # some of pch header depends idl generated file, so...
+				COMMENT "Creating Precompiler header..."
+				)
+		else()
+			add_custom_command(
+				OUTPUT ${_pch_pch}
+				COMMAND ${X_COMPILER_LEADER} ${CMAKE_CXX_COMPILER} -x c++-header "$(CXX_DEFINES)" "$(CXX_FLAGS)" "$(CXX_INCLUDES)" ${X_CURRENT_PACKAGE_OPTIMIZATION} "${CMAKE_CURRENT_SOURCE_DIR}/${_pch_header}" -o "${_pch_pch}"
+				MAIN_DEPENDENCY ${_pch_header}
+				IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_pch_header}
+				DEPENDS ${${_idl_gen_ref}} # some of pch header depends idl generated file, so...
+				COMMENT "Creating Precompiler header..."
+				)
+		endif()
+		if("!${CMAKE_CXX_COMPILER_ID}" STREQUAL "!GNU")
+			foreach(_x ${_deal_pch_srcs})
+				if(_x MATCHES "(\\.cpp$|\\.cc$|\\.cxx$)")
+					get_property(_flags SOURCE "${_x}" PROPERTY COMPILE_FLAGS)
+					set_property(SOURCE "${_x}" 
+						PROPERTY COMPILE_FLAGS "${_flags} -fpch-preprocess -include ${CMAKE_CURRENT_BINARY_DIR}/${_pch_header}")
+				endif()
+			endforeach()
+		elseif("!${CMAKE_CXX_COMPILER_ID}" STREQUAL "!Clang")
+			foreach(_x ${_deal_pch_srcs})
+				if(_x MATCHES "(\\.cpp$|\\.cc$|\\.cxx$)")
+					get_property(_flags SOURCE "${_x}" PROPERTY COMPILE_FLAGS)
+					set_property(SOURCE "${_x}" 
+						PROPERTY COMPILE_FLAGS "${_flags} -include-pch ${_pch_pch}")
+				endif()
+			endforeach()
+		endif()
+	endif()
+	set(${_srcs_ref} ${_deal_pch_srcs})
+endmacro()
+
+macro(_disable_analysis_for_generated_file _srcs_ref)
+	set(_dafgf_srcs ${${_srcs_ref}})
+	if(X_STATIC_CODE_ANALYZE)
+		foreach(_src ${_dafgf_srcs})
+			if((IS_ABSOLUTE ${_src}) AND 
+				(NOT _src MATCHES ${CMAKE_SOURCE_DIR}) AND 
+				_src MATCHES "/qrc_.*\\.cpp$"
+				)
+				set_property(SOURCE "${_src}" PROPERTY COMPILE_FLAGS "/analyze-")
+			endif()
+		endforeach()
+	endif()
+endmacro()
+
+macro(_append_target_property_string _target _property _val)
+	get_target_property(_orig_val ${_target} ${_property})
+	if(_orig_val)
+		set_target_properties(${_target} PROPERTIES ${_property} "${_orig_val} ${_val}")
+	else()
+		set_target_properties(${_target} PROPERTIES ${_property} "${_val}")
+	endif()
+endmacro()
