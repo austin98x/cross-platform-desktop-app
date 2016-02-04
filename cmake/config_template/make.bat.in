@@ -1,0 +1,7 @@
+if "%1" == "" (
+	msbuild /t:ZERO_CHECK
+	msbuild /m @CMAKE_PROJECT_NAME@.sln 
+) else (
+	msbuild /t:ZERO_CHECK
+	msbuild /m @CMAKE_PROJECT_NAME@.sln /t:%1 
+)
