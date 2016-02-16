@@ -1,0 +1,31 @@
+macro(x_find_ccache)
+	if(NOT X_CCACHE)
+		execute_process(COMMAND which ccache
+			OUTPUT_VARIABLE _ccache
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		if(NOT _ccache)
+			message(FATAL_ERROR "Can not found ccache!")
+		endif()
+		set(X_CCACHE "${_ccache}" CACHE FILEPATH "ccache binary path")
+	endif()
+endmacro()
+
+macro(x_find_split_symbol)
+	if(NOT X_SPLIT_SYMBOL)
+		if (NOT OBJCOPY_BIN)
+			set(OBJCOPY_BIN objcopy)
+		endif()
+		if (NOT STRIP_BIN)
+			set(STRIP_BIN strip)
+		endif()
+		set(X_SPLIT_SYMBOL "${X_CMAKE_DIR}/scripts/split_symbol.sh")
+		set(X_SPLIT_SYMBOL_ARGS "-o ${OBJCOPY_BIN} -s ${STRIP_BIN}")
+	endif()
+endmacro()
+
+macro(x_find_copy_syslib)
+	if (NOT X_COPY_SYSLIB)
+		set(X_COPY_SYSLIB "${X_CMAKE_DIR}/scripts/copy_syslib.sh" CACHE FILEPATH "copy system library script")
+	endif()
+endmacro()

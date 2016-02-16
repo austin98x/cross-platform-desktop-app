@@ -122,27 +122,6 @@ macro(x_include_directories)
 	#message(STATUS ${_cur_system_argn})
 endmacro()
 
-# x_include_packages(package1 package2 ...)
-#					support platform judge: WIN, LINUX.
-macro(x_include_packages)
-	_args_system_filter(_cur_system_argn ${ARGN})
-	foreach(_pkg ${_cur_system_argn})
-		if(NOT TARGET ${_pkg})
-			message(FATAL_ERROR "${_pkg} is not a valid package.")
-		endif()
-		get_property(_pkg_type TARGET ${_pkg} PROPERTY X_PACKAGE_TYPE)
-		if(NOT ${_pkg_type} STREQUAL "NONE")
-			get_property(_pub_dir TARGET ${_pkg} PROPERTY X_PUBLIC_HEADER_DIR)
-			if(NOT _pub_dir)
-				message(WARNING "${_pkg} do not has public header.")
-			endif()
-			include_directories(${_pub_dir})
-			list(APPEND X_CURRENT_PACKAGE_DEPEND_PKGS ${_pkg})
-			list(APPEND X_CURRENT_PACKAGE_INCLUDE_PKG_DIRS ${_pub_dir})
-		endif()
-	endforeach()
-endmacro()
-
 # x_add_sources([PCH stdafx.h stdafx.cpp] a.h a.cpp b.h b.cpp ...)
 # 					x_add_sources(a.cpp WIN(b.cpp) LINUX(c.cpp))
 #					include b.cpp and exclude c.cpp when on Windows, include c.cpp and exclude b.cpp when on Linux.
@@ -382,6 +361,69 @@ macro(_generate_make_bat)
 	if(CMAKE_GENERATOR MATCHES "^Visual Studio")
 		configure_file("${CMAKE_SOURCE_DIR}/cmake/config_template/make.bat.in" "${CMAKE_BINARY_DIR}/make.bat" @ONLY)
 	endif()
+endmacro()
+
+# x_set_executable_entrypoint(point) this is for windows platform.
+macro(x_set_executable_entrypoint ep)
+	set(X_EXECUTABLE_ENTRYPOINT ${ep})
+endmacro()
+
+# x_set_uac_execution_level(level) this is for windows platform.
+#								level: asInvoker, highestAvailable, requireAdministrator.
+macro(x_set_uac_execution_level _level)
+	set(X_UAC_EXECUTION_LEVEL ${_level})
+endmacro()
+
+# x_set_incompatible_dep() this is for windows platform.
+macro(x_set_incompatible_dep)
+	set(X_CURRENT_PACKAGE_DEP "NXCOMPAT:NO")
+endmacro()
+
+# x_set_runtime_library_type(type) this is for windows platform.
+#								Release: MD MT, Debug: MDd MTd.
+macro(x_set_runtime_library_type _type)
+	set(X_CURRENT_PACKAGE_RUNTIME_LIBRARY_TYPE "${_type}")
+	if("!${CMAKE_BUILD_TYPE}" STREQUAL "!Debug")
+		set(X_CURRENT_PACKAGE_RUNTIME_LIBRARY_TYPE "${_type}d")
+	endif()
+endmacro()
+
+# x_set_optimization(level) 
+#						only work at Release.
+#						level: NONE MIN_SIZE MAX_SPEED, default: MIN_SIZE.
+macro(x_set_optimization _level)
+	if("!${CMAKE_BUILD_TYPE}" STREQUAL "!Release")
+		if("!${_level}" STREQUAL "!NONE")
+			set(X_CURRENT_PACKAGE_OPTIMIZATION "${CXX_OPTIMIZATION_NONE_FLAGS}")
+		elseif("!${_level}" STREQUAL "!MIN_SIZE")
+			set(X_CURRENT_PACKAGE_OPTIMIZATION "${CXX_OPTIMIZATION_MINSIZE_FLAGS}")
+		elseif("!${_level}" STREQUAL "!MAX_SPEED")
+			set(X_CURRENT_PACKAGE_OPTIMIZATION "${CXX_OPTIMIZATION_MAXSPEED_FLAGS}")
+		else()
+			message(FATAL_ERROR "macro x_set_optimization does not recognize argument: \"${_level}\"")
+		endif()
+	endif()
+endmacro()
+
+# x_add_link_flags(opt) 
+macro(x_add_link_flags _opt)
+	set(X_CURRENT_EXTRA_LINK_FLAGS ${_opt})
+endmacro()
+
+# x_add_dependencies()
+macro(x_add_dependencies)
+	_args_system_filter(_cur_system_argn ${ARGN})
+	set(X_CURRENT_PACKAGE_DEPEND_PKGS ${X_CURRENT_PACKAGE_DEPEND_PKGS} ${_cur_system_argn})
+endmacro()
+
+# x_set_pgo() this is for windows platform.
+macro(x_set_pgo)
+	set(X_CURRENT_USE_PGO "yes")
+endmacro()
+
+# x_set_dotnet_clr() this is for windows platform.
+macro(x_set_dotnet_clr)
+	set(X_CURRENT_DOTNET_CLR "yes")
 endmacro()
 
 ####################################################################################################
