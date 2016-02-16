@@ -7,7 +7,9 @@ project(App)
 include(cmake/x.cmake)
 
 x_add_subdirectory(3rdparty)
-x_add_subdirectory(core)
+x_add_subdirectory(bfc)
 x_add_subdirectory(uilayer)
+x_add_subdirectory(core)
+x_add_subdirectory(datalayer)
 
 x_final_deal()
