@@ -19,7 +19,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdexcpt.h>
 #ifdef __cplusplus
 #include <cstdint>
 #else

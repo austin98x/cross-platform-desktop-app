@@ -298,6 +298,8 @@ typedef int HRESULT;
 #define IFACEMETHODV(method)        __override STDMETHODV(method)
 #define IFACEMETHODV_(type,method)  __override STDMETHODV_(type,method)
 
+#define SUCCEEDED(hr) (((HRESULT)(hr)) >= 0)
+#define FAILED(hr) (((HRESULT)(hr)) <= 0)
 
 // -------------------------------------------------------------------------- //
 
