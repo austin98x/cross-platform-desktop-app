@@ -16,6 +16,11 @@
 #include "bfc/predef/pre_platform.h"
 #include "bfc/predef/pre_def.h"
 
+// [ERR_HANDLE]
+#include "bfc/error/eh_errno.h"
+#include "bfc/error/eh_check.h"
+#include "bfc/error/eh_exception.h"
+
 #undef __BFC_INCLUDE__
 
 // -------------------------------------------------------------------------- //
