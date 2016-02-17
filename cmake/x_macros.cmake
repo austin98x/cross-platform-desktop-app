@@ -130,7 +130,38 @@ macro(_generate_binary_info_file)
 	endif()	
 endmacro()
 
-macro(_deal_sources_group _srcs_ref _idl_gen_ref _group_idx)
+macro(_deal_sources _srcs_ref)
+	set(_wds_srcs ${${_srcs_ref}})
+	
+	set(_srcs_for_compile)
+	set(_srcs_grouped)
+	set(_group_idx 0)
+	foreach(_src ${_wds_srcs})
+		if(NOT _src STREQUAL "X_SOURCE_SEPARATOR")
+			list(APPEND _srcs_grouped ${_src})
+			if(IS_ABSOLUTE ${_src})
+				file(RELATIVE_PATH _group_path ${CMAKE_CURRENT_SOURCE_DIR} ${_src})
+			else()
+				file(RELATIVE_PATH _group_path ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${_src})
+			endif()
+			get_filename_component(_group_path ${_group_path} PATH)
+			file(TO_NATIVE_PATH "${_group_path}" _group_path)
+			string(REPLACE "/" "\\" _group_path "${_group_path}")
+			source_group("${_group_path}" FILES ${_src})
+		else()
+			if(_srcs_grouped)
+				_deal_sources_group(_srcs_grouped ${_group_idx})
+				list(APPEND _srcs_for_compile ${_srcs_grouped})
+			endif()
+			set(_srcs_grouped)
+			math(EXPR _group_idx "${_group_idx}+1")
+		endif()
+	endforeach()
+
+	set(${_srcs_ref} ${_srcs_for_compile})
+endmacro()
+
+macro(_deal_sources_group _srcs_ref _group_idx)
 	set(_wdsg_srcs ${${_srcs_ref}})
 
 	set(_pch_header "")
@@ -146,13 +177,13 @@ macro(_deal_sources_group _srcs_ref _idl_gen_ref _group_idx)
 	endif()
 
 	if(_pch_header)
-		_deal_pch(_wdsg_srcs ${_pch_header} ${_pch_source} ${_idl_gen_ref})
+		_deal_pch(_wdsg_srcs ${_pch_header} ${_pch_source})
 	endif()	
 
 	set(${_srcs_ref} ${_wdsg_srcs})
 endmacro()
 
-macro(_deal_pch _srcs_ref _pch_header _pch_source _idl_gen_ref)
+macro(_deal_pch _srcs_ref _pch_header _pch_source)
 	set(_deal_pch_srcs ${${_srcs_ref}})
 	if(MSVC)
 		if(CMAKE_GENERATOR MATCHES "^Visual Studio")
@@ -189,7 +220,6 @@ macro(_deal_pch _srcs_ref _pch_header _pch_source _idl_gen_ref)
 						"${CMAKE_CURRENT_SOURCE_DIR}/${_pch_source}"
 				MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${_pch_source}
 				IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_pch_source}
-				DEPENDS ${${_idl_gen_ref}} # some of pch header depends idl generated file, so...
 				COMMENT "Creating Precompiler header..."
 				)
 		endif()
@@ -213,7 +243,6 @@ macro(_deal_pch _srcs_ref _pch_header _pch_source _idl_gen_ref)
 				COMMAND ${X_COMPILER_LEADER} ${CMAKE_CXX_COMPILER} -x c++-header ${_args} ${X_CURRENT_PACKAGE_OPTIMIZATION} "${CMAKE_CURRENT_SOURCE_DIR}/${_pch_header}" -o "${_pch_pch}"
 				MAIN_DEPENDENCY ${_pch_header}
 				IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_pch_header}
-				DEPENDS ${${_idl_gen_ref}} # some of pch header depends idl generated file, so...
 				COMMENT "Creating Precompiler header..."
 				)
 		else()
@@ -222,7 +251,6 @@ macro(_deal_pch _srcs_ref _pch_header _pch_source _idl_gen_ref)
 				COMMAND ${X_COMPILER_LEADER} ${CMAKE_CXX_COMPILER} -x c++-header "$(CXX_DEFINES)" "$(CXX_FLAGS)" "$(CXX_INCLUDES)" ${X_CURRENT_PACKAGE_OPTIMIZATION} "${CMAKE_CURRENT_SOURCE_DIR}/${_pch_header}" -o "${_pch_pch}"
 				MAIN_DEPENDENCY ${_pch_header}
 				IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${_pch_header}
-				DEPENDS ${${_idl_gen_ref}} # some of pch header depends idl generated file, so...
 				COMMENT "Creating Precompiler header..."
 				)
 		endif()
@@ -267,5 +295,18 @@ macro(_append_target_property_string _target _property _val)
 		set_target_properties(${_target} PROPERTIES ${_property} "${_orig_val} ${_val}")
 	else()
 		set_target_properties(${_target} PROPERTIES ${_property} "${_val}")
+	endif()
+endmacro()
+
+macro(_convert_file_code _src_code _src_file _dst_code _dst_file)
+	file(TO_NATIVE_PATH "${_src_file}" _src_file_native)
+	file(TO_NATIVE_PATH "${_dst_file}" _dst_file_native)
+	execute_process(
+		COMMAND "iconv" "-f" "${_src_code}" "-t" "${_dst_code}" "${_src_file_native}"
+		OUTPUT_FILE "${_dst_file_native}"
+		RESULT_VARIABLE _execute_result
+		)
+	if(NOT _execute_result EQUAL 0)
+		message(FATAL_ERROR "iconv.exe convert code failed, file:${_src_file_native}")
 	endif()
 endmacro()
