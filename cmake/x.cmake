@@ -301,7 +301,7 @@ macro(x_end_package)
 	endif()	
 
 	if(OS_LINUX)
-		_find_split_symbol()
+		x_find_split_symbol()
 		if("${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "EXECUTABLE!" OR
 			"${X_CURRENT_PACKAGE_TYPE}!" STREQUAL "CONSOLE!")
 			set(_out_file ${X_CURRENT_PACKAGE_NAME})
