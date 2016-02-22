@@ -6,7 +6,7 @@ project(App)
 
 include(cmake/x.cmake)
 
-x_add_subdirectory(cmake/testcase)
+#x_add_subdirectory(cmake/testcase)
 
 x_add_subdirectory(3rdparty)
 x_add_subdirectory(bfc)
