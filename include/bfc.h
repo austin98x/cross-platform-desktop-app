@@ -21,6 +21,13 @@
 #include "bfc/error/eh_check.h"
 #include "bfc/error/eh_exception.h"
 
+// [STRING]
+#include "bfc/strapi/strapi.h"
+#include "bfc/convert/convert.h"
+
+// [OS Lite]
+#include "bfc/oslite/os_file.h"
+
 #undef __BFC_INCLUDE__
 
 // -------------------------------------------------------------------------- //
