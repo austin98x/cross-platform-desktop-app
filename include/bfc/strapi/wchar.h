@@ -11,10 +11,6 @@
 // =========================================================================
 // WCHAR char type concept
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 #define WCHARAPI        EXTERN_C HRESULT STDAPICALLTYPE
 #define WCHARAPI_(type) EXTERN_C type STDAPICALLTYPE
 
@@ -60,9 +56,5 @@ WCHARAPI_(WCHAR*) _Xu2_strstr(const WCHAR* str1, const WCHAR* str2);
 WCHARAPI_(double) _Xu2_strtod(const WCHAR* string, WCHAR** end);
 WCHARAPI_(long) _Xu2_strtol(const WCHAR* string, WCHAR** end, int base);
 WCHARAPI_(unsigned long) _Xu2_strtoul(const WCHAR* string, WCHAR** end, int base);
-
-#if defined(__cplusplus)
-};
-#endif
 
 #endif // __WCHAR_H__

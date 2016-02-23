@@ -14,6 +14,33 @@
 #endif
 
 // -------------------------------------------------------------------------- //
+// --> Compiler Cofiguration
+#if defined(X_CC_VC)
+#	define X_VER_VC5							1100
+#	define X_VER_VC6							1200
+#	define X_VER_VC_NET_2003					1300
+#	define X_VER_VC_NET_2005					1400
+#   define X_VER_VC_NET_2008                    1500
+#	define X_VER_VC_NET_2010					1600
+#	define X_VER_VC_NET_2012					1700
+#	define X_VER_VC_NET_2013					1800
+#	if (_MSC_VER < X_VER_VC_NET_2010)
+#		error "the compiler version is too lower, please use msvc2010 or above."
+#	endif
+#elif defined(X_CC_GCC)
+#	define __stdcall			__attribute__((stdcall))
+#	define __fastcall			__attribute__((fastcall))
+#	define __cdecl
+#	define __export				__attribute__((visibility("default")))
+#else
+#	define __stdcall
+#	define __fastcall
+#	define __cdecl
+#   define __export
+#endif
+
+
+// -------------------------------------------------------------------------- //
 // --> Type Definitions
 
 #ifndef BASETYPES
@@ -270,8 +297,11 @@ typedef int HRESULT;
 #define STDAPICALLTYPE          __stdcall
 #define STDAPIVCALLTYPE         __cdecl
 
-#define STDAPI                  EXTERN_C __export HRESULT __stdcall
-#define STDAPI_(type)           EXTERN_C __export type __stdcall
+#define STDAPI                  EXTERN_C HRESULT __stdcall
+#define STDAPI_(type)           EXTERN_C type __stdcall
+
+#define EXPORTAPI				EXTERN_C __export HRESULT __stdcall
+#define EXPORTAPI_(type)		EXTERN_C __export type __stdcall
 
 #define STDMETHODIMP            HRESULT STDMETHODCALLTYPE
 #define STDMETHODIMP_(type)     type STDMETHODCALLTYPE
