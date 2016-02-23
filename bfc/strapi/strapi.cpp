@@ -202,7 +202,7 @@ EXPORTAPI_(WCHAR*) _Xu2_ultoa(unsigned long val, WCHAR* string, int radix)
 
 EXPORTAPI_(WCHAR*) _Xu2_strstr(const WCHAR* str1, const WCHAR* str2)
 {
-	strstr(str1, str2);
+	return __strstr(str1, str2);
 }
 
 EXPORTAPI_(double) _Xu2_strtod(const WCHAR* string, WCHAR** end)

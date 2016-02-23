@@ -45,11 +45,14 @@
 #	if (_MSC_VER < X_VER_VC_NET_2010)
 #		error "the compiler version is too lower, please use msvc2010 or above."
 #	endif
+    typedef unsigned __int64    __uint64;
 #elif defined(X_CC_GCC)
 #	define __stdcall			__attribute__((stdcall))
 #	define __fastcall			__attribute__((fastcall))
 #	define __cdecl
 #	define __export				__attribute__((visibility("default")))
+	typedef int64_t				__int64;
+	typedef uint64_t			__uint64;
 #else
 #	define __stdcall
 #	define __fastcall
@@ -123,6 +126,18 @@ static_assert(sizeof(uintp) == sizeof(void*), "uintp's size not equal to void *"
 #define __X(x) ((unsigned short *)(u ## x))
 #define OLESTR(x) __X(x)
 #define __Xc(x) ((unsigned short)(u ## x))
+#endif
+
+#ifndef MAX_PATH
+#define MAX_PATH		260
+#endif
+
+#ifndef _MAX_PATH
+#define _MAX_PATH		MAX_PATH
+#define _MAX_FNAME		256
+#define _MAX_DRIVE		3
+#define _MAX_DIR		256
+#define _MAX_EXT		256
 #endif
 
 // -------------------------------------------------------------------------- //

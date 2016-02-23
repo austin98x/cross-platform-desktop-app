@@ -18,7 +18,7 @@ WCHARAPI_(int) _Xu2_memcmp(const WCHAR* first, const WCHAR* second, size_t count
 WCHARAPI_(WCHAR*) _Xu2_memcpy(WCHAR* dest, const WCHAR* src, size_t count);
 WCHARAPI_(WCHAR*) _Xu2_memmove(WCHAR* dest, const WCHAR* src, size_t count);
 WCHARAPI_(WCHAR*) _Xu2_memset(WCHAR* dest, WCHAR ch, size_t count);
-const WCHAR* __stdcall _Xu2_memchr(const WCHAR* string, WCHAR ch, size_t count);
+WCHARAPI_(const WCHAR*) _Xu2_memchr(const WCHAR* string, WCHAR ch, size_t count);
 
 WCHARAPI_(WCHAR*) _Xu2_strcat(WCHAR* dest, const WCHAR* src);
 WCHARAPI_(WCHAR*) _Xu2_strncat(WCHAR* dest, const WCHAR* src, size_t count);

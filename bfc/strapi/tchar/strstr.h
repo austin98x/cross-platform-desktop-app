@@ -39,7 +39,7 @@
 *******************************************************************************/
 
 __template_xchar
-xchar * __xdecl strstr (
+xchar * __xdecl __xcharfunc(strstr) (
         const xchar * str1,
         const xchar * str2
         )
