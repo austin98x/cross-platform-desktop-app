@@ -8,6 +8,9 @@ x_package(bfc STATIC)
 		)
 	x_add_sources(
 		PCH stdafx.h stdafx.cpp
+		LINUX(
+			strapi/strapi.cpp
+			)
 		)
 	x_declare_fileinfo(
 		FILE_DESCRIPTION "BFC"
