@@ -23,7 +23,6 @@
 
 // [STRING]
 #include "bfc/strapi/strapi.h"
-#include "bfc/convert/convert.h"
 
 // [OS Lite]
 #include "bfc/oslite/os_file.h"
