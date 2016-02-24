@@ -35,6 +35,11 @@ typedef long LONG;
 typedef int INT;
 #endif
 
+typedef void* PVOID;
+typedef unsigned short VARTYPE;
+typedef short VARIANT_BOOL;
+typedef long SCODE;
+
 #define MAX_PATH          260
 
 #ifndef NULL
@@ -127,6 +132,8 @@ typedef unsigned int        UINT;
 typedef unsigned int        *PUINT;
 typedef long long           LONGLONG;
 typedef unsigned long long  ULONGLONG;
+typedef DWORD               LCID;
+typedef DWORD               LCTYPE;
 
 typedef unsigned short WCHAR;
 typedef WCHAR* PWCHAR;
@@ -246,10 +253,65 @@ typedef struct tagPOINTS
 	SHORT   x;
 } POINTS, *PPOINTS, *LPPOINTS;
 
+typedef union _LARGE_INTEGER
+{
+	struct
+	{
+		int32_t LowPart;
+		int32_t HighPart;
+	};
+	int64_t QuadPart;
+} LARGE_INTEGER, *PLARGE_INTEGER; 
+
+typedef union _ULARGE_INTEGER
+{
+	struct
+	{
+		uint32_t LowPart;
+		uint32_t HighPart;
+	};
+	uint64_t QuadPart;
+} ULARGE_INTEGER, *PULARGE_INTEGER;
+
 typedef struct _FILETIME {
 	DWORD dwLowDateTime;
 	DWORD dwHighDateTime;
 } FILETIME, *PFILETIME, *LPFILETIME;
+
+typedef union tagCY
+{
+	struct
+	{
+		int32_t Lo;
+		int32_t Hi;
+	};
+	int64_t int64;
+} CY;
+typedef CY* LPCY;
+
+typedef struct tagDEC
+{
+	USHORT wReserved;
+	union
+	{
+		struct
+		{
+			BYTE scale;
+			BYTE sign;
+		};
+		USHORT signscale;
+	};
+	uint32_t Hi32;
+	union
+	{
+		struct
+		{
+			uint32_t Lo32;
+			uint32_t Mid32;
+		};
+		uint64_t Lo64;
+	};
+} DECIMAL;
 
 #ifndef _HRESULT_DEFINED
 #define _HRESULT_DEFINED
@@ -293,9 +355,7 @@ typedef int HRESULT;
 #define STDMETHOD_(type,method)  virtual type STDMETHODCALLTYPE method
 #define STDMETHODV(method)       virtual HRESULT STDMETHODVCALLTYPE method
 #define STDMETHODV_(type,method) virtual type STDMETHODVCALLTYPE method
-#define PURE                    = 0
-#define THIS_
-#define THIS                    void
+
 #define IFACEMETHOD(method)         __override STDMETHOD(method)
 #define IFACEMETHOD_(type,method)   __override STDMETHOD_(type,method)
 #define IFACEMETHODV(method)        __override STDMETHODV(method)
@@ -303,6 +363,14 @@ typedef int HRESULT;
 
 #define SUCCEEDED(hr) (((HRESULT)(hr)) >= 0)
 #define FAILED(hr) (((HRESULT)(hr)) <= 0)
+
+DECLARE_HANDLE(HGLOBAL);
+
+#define PURE                    = 0
+#define THIS_
+#define THIS                    void
+#define __RPC_FAR
+#define __RPC_STUB              __stdcall
 
 // -------------------------------------------------------------------------- //
 
