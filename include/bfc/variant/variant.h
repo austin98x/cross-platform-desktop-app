@@ -834,4 +834,4 @@ private:
 
 _BFC_END
 
-#endif /* __KFC_VARIANT_H__ */
+#endif /* __VARIANT_H__ */

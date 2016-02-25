@@ -8,6 +8,11 @@
 #ifndef __ERRNO_UNIX_H__
 #define __ERRNO_UNIX_H__
 
+#ifndef __BFC_INCLUDE__
+#	error This file is not intended to be included separately
+#endif
+
+// -------------------------------------------------------------------------- //
 //
 //  Values are 32 bit values layed out as follows:
 //
