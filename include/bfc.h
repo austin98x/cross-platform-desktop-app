@@ -28,7 +28,7 @@
 #include "bfc/oslite/os_file.h"
 
 // [COM]
-#include "bfc/com/objbase.h"
+#include "bfc/com/com.h"
 
 #undef __BFC_INCLUDE__
 

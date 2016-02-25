@@ -53,6 +53,7 @@
 #	define __export				__attribute__((visibility("default")))
 	typedef int64_t				__int64;
 	typedef uint64_t			__uint64;
+	typedef uint32_t			PROPID;
 #else
 #	define __stdcall
 #	define __fastcall

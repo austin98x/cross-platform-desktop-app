@@ -2,7 +2,7 @@
 //	File name		：	objbase.h
 //	Author 			：	Austin
 //	Create Time		：	2016-2-24 09:57:11
-//	Description 	：	Define com for Linux platform
+//	Description 	：	Declare some API functions for Linux platform
 //
 // -----------------------------------------------------------------------*/
 
@@ -12,17 +12,6 @@
 #ifndef __BFC_INCLUDE__
 #	error This file is not intended to be included separately
 #endif
-
-// -------------------------------------------------------------------------
-
-#if defined( X_OS_WINDOWS )
-#   include <objbase.h>
-#else
-#   include "bfc/predef/pre_unixdef.h"
-#   include "guid.h"
-#   include "objidl.h"
-#   include "oaidl.h"
-#   include "oleauto.h"
 
 // -------------------------------------------------------------------------
 // --> CoTaskMem
@@ -60,7 +49,6 @@ STDAPI_(int) _XStringFromGUID2(REFGUID guid, LPOLESTR psz, int cchMax);
 #define CLSIDFromProgID(psz, pclsid)	_XCLSIDFromProgID(psz, pclsid)
 #define StringFromGUID2(guid, psz, cch)	_XStringFromGUID2(guid, psz, cch)
 
-#endif
 // -------------------------------------------------------------------------
 
 #endif /* __OBJBASE_H__ */
