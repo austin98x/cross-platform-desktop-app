@@ -14,6 +14,11 @@
 #endif
 
 // -------------------------------------------------------------------------- //
+#ifndef X_OS_WINDOWS
+#include "errno_unix.h"
+#endif
+
+// -------------------------------------------------------------------------- //
 
 #ifndef KS_MAKE_ERRNO
 #define KS_MAKE_ERRNO(Facility, errno)										\

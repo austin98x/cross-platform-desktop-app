@@ -361,9 +361,6 @@ typedef int HRESULT;
 #define IFACEMETHODV(method)        __override STDMETHODV(method)
 #define IFACEMETHODV_(type,method)  __override STDMETHODV_(type,method)
 
-#define SUCCEEDED(hr) (((HRESULT)(hr)) >= 0)
-#define FAILED(hr) (((HRESULT)(hr)) <= 0)
-
 DECLARE_HANDLE(HGLOBAL);
 
 #define PURE                    = 0
@@ -371,6 +368,18 @@ DECLARE_HANDLE(HGLOBAL);
 #define THIS                    void
 #define __RPC_FAR
 #define __RPC_STUB              __stdcall
+
+#define AllocMemory(cb)					malloc(cb)
+#define ReallocMemory(pv, cb)			realloc(pv, cb)
+#define FreeMemory(pv)					free(pv)
+#define FillMemory(p, len, c)			memset(p, c, len)
+#define ZeroMemory(p, len)				memset(p, 0, len)
+#define CopyMemory(dst, src, len)		memcpy(dst, src, len)
+#define MoveMemory(dst, src, len)		memmove(dst, src, len)
+#define ZeroStruct(buf)					ZeroMemory(&(buf), sizeof(buf))
+
+#define TokenVal(p, type)				(*((type*&)(p))++)
+#define TokenSize(p, size)				(((const char*&)(p)) += (size))
 
 // -------------------------------------------------------------------------- //
 

@@ -33,6 +33,9 @@
 // [BSTR]
 #include "bfc/bstr/bstr.h"
 
+// [VARIANT]
+#include "bfc/variant/variant.h"
+
 #undef __BFC_INCLUDE__
 
 // -------------------------------------------------------------------------- //
