@@ -30,6 +30,9 @@
 // [COM]
 #include "bfc/com/com.h"
 
+// [BSTR]
+#include "bfc/bstr/bstr.h"
+
 #undef __BFC_INCLUDE__
 
 // -------------------------------------------------------------------------- //

@@ -24,6 +24,7 @@
 #else
 #include <stdint.h>
 #endif
+#include <assert.h>
 #include "pre_platform.h"
 #if defined(X_OS_WINDOWS)
 #include <windows.h>
