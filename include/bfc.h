@@ -37,6 +37,9 @@
 // [VARIANT]
 #include "bfc/variant/variant.h"
 
+// [POINTER]
+#include "bfc/pointer/ptr.h"
+
 #undef __BFC_INCLUDE__
 
 // -------------------------------------------------------------------------- //
