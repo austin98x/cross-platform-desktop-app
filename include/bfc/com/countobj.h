@@ -17,7 +17,7 @@ _BFC_BEGIN
 // -------------------------------------------------------------------------
 
 #ifndef KS_VALID_REFCOUNT
-#define KS_VALID_REFCOUNT(nRef)	ASSERT((unsigned)(nRef) < 2000000000)
+#define KS_VALID_REFCOUNT(nRef)	assert((unsigned)(nRef) < 2000000000)
 #endif
 
 #ifndef KS_INVALID_REFCOUNT
