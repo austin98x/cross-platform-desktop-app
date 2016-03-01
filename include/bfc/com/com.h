@@ -35,4 +35,7 @@
 #   include "objbase.h"
 #endif
 
+#include "comdef.h"
+#include "countobj.h"
+
 #endif // __COM_H__

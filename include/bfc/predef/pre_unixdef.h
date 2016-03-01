@@ -335,6 +335,9 @@ typedef int HRESULT;
 #define STDAPI                  EXTERN_C HRESULT __stdcall
 #define STDAPI_(type)           EXTERN_C type __stdcall
 
+#define STDPROC					virtual HRESULT __stdcall
+#define STDPROC_(Type)			virtual Type __stdcall
+
 #define EXPORTAPI				EXTERN_C __export HRESULT __stdcall
 #define EXPORTAPI_(type)		EXTERN_C __export type __stdcall
 
