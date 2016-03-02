@@ -15,6 +15,7 @@
 _BFC_BEGIN
 
 // -------------------------------------------------------------------------
+// --> KCountObject
 
 #ifndef KS_VALID_REFCOUNT
 #define KS_VALID_REFCOUNT(nRef)	assert((unsigned)(nRef) < 2000000000)
@@ -51,6 +52,29 @@ public:
 	
 protected:
 	long m_nRef;
+};
+
+// -------------------------------------------------------------------------
+// --> KCountObjectPtr
+
+template <class ComClass>
+class KCountObjectPtr : public ks_stdptr< KCountObject<ComClass> >
+{
+public:
+	typedef ks_stdptr< KCountObject<ComClass> > _Base;
+	typedef KCountObjectPtr<ComClass> _Myt;
+
+public:
+	using _Base::operator=;
+
+private:
+	using _Base::_ptr;
+
+public:
+	KCountObjectPtr(enum_create_instance)
+	{
+		_ptr = new KCountObject<ComClass>;
+	}
 };
 
 // -------------------------------------------------------------------------

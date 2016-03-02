@@ -16,23 +16,25 @@
 // -------------------------------------------------------------------------
 
 #if defined( X_OS_WINDOWS )
-#   include <objbase.h>
-#   include <objidl.h>
-#   include <oaidl.h>
-#   include <ocidl.h>
-#   include <oleidl.h>
-#   include <propidl.h>
+#	include <objbase.h>
+#	include <objidl.h>
+#	include <oaidl.h>
+#	include <ocidl.h>
+#	include <oleidl.h>
+#	include <propidl.h>
+#	include <Ole2.h>
 #else
-#   include "bfc/predef/pre_unixdef.h"
-#   include "guid.h"
-#   include "guiddef.h"
-#   include "objidl.h"
-#   include "oaidl.h"
-#   include "ocidl.h"
-#   include "oleidl.h"
-#   include "propidl.h"
-#   include "oleauto.h"
-#   include "objbase.h"
+#	include "bfc/predef/pre_unixdef.h"
+#	include "guid.h"
+#	include "guiddef.h"
+#	include "objidl.h"
+#	include "oaidl.h"
+#	include "ocidl.h"
+#	include "oleidl.h"
+#	include "propidl.h"
+#	include "oleauto.h"
+#	include "objbase.h"
+#	include "ole2.h"
 #endif
 
 #include "comdef.h"
