@@ -25,6 +25,9 @@
 #include "bfc/strapi/strapi.h"
 #include "bfc/strapi/transcode.h"
 
+// [POINTER]
+#include "bfc/pointer/ptr.h"
+
 // [OS Lite]
 #include "bfc/oslite/os_file.h"
 
@@ -36,9 +39,6 @@
 
 // [VARIANT]
 #include "bfc/variant/variant.h"
-
-// [POINTER]
-#include "bfc/pointer/ptr.h"
 
 #undef __BFC_INCLUDE__
 
