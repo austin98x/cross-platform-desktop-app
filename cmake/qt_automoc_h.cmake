@@ -1,0 +1,55 @@
+if(NOT EXISTS "${LIST_FILE}")
+	message("List file does not exists.")
+endif()
+
+file(STRINGS "${LIST_FILE}" _input_files)
+
+foreach(_f ${_input_files})
+	if(_f MATCHES "^[ \t]*$")
+		list(REMOVE_ITEM _input_files ${_f})
+	endif()
+	if(NOT EXISTS "${_f}")
+		message("Input file ${_f} does not exists.")
+	endif()
+endforeach()
+
+if(PCH_HEADER)
+	file(WRITE ${OUTPUT_FILE} "#include \"${PCH_HEADER}\"\n\n")
+else()
+	file(WRITE ${OUTPUT_FILE} "")
+endif()
+
+set(_args)
+foreach(_d ${DEFINITIONS})
+	list(APPEND _args "-D${_d}")
+endforeach()
+foreach(_i ${INCLUDES})
+	list(APPEND _args "-I${_i}")
+endforeach()
+
+foreach(_i ${_input_files})
+	get_filename_component(_filename ${_i} NAME_WE)
+	file(STRINGS "${_i}" _input_cont)
+	set(_need_moc NO)
+	foreach(_l ${_input_cont})
+		if(_l MATCHES "Q_OBJECT")
+			if(NOT _l MATCHES "//.*OBJECT")
+				set(_need_moc YES)
+				break()
+			endif()
+		endif()
+	endforeach()
+	if(_need_moc)
+		execute_process(
+			COMMAND ${MOC_BIN} ${_i} ${_args}
+			OUTPUT_VARIABLE _o
+			RESULT_VARIABLE _r
+			)
+		if(NOT _r EQUAL 0)
+			message(FATAL_ERROR "Failed to create moc file!")
+		endif()
+		#Filter generation time to improve the ccache hit rate
+		string(REGEX REPLACE "\n\\*\\* Created:[^\n]*\n" "\n" _o2 "${_o}")
+		file(APPEND ${OUTPUT_FILE} "${_o2}")
+	endif()
+endforeach()

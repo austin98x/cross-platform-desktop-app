@@ -122,14 +122,14 @@ macro(x_include_directories)
 	#message(STATUS ${_cur_system_argn})
 endmacro()
 
-# x_add_sources([PCH stdafx.h stdafx.cpp] a.h a.cpp b.h b.cpp ...)
+# x_add_sources([PCH stdafx.h stdafx.cpp] [QT_AUTOMOC] a.h a.cpp b.h b.cpp ...)
 # 					x_add_sources(a.cpp WIN(b.cpp) LINUX(c.cpp))
 #					include b.cpp and exclude c.cpp when on Windows, include c.cpp and exclude b.cpp when on Linux.
 #                   support platform judge: WIN, LINUX.
 macro(x_add_sources)
 	_args_system_filter(_cur_system_argn ${ARGN})
 	foreach(_f ${_cur_system_argn})
-		if(_f MATCHES "(PCH)")
+		if(_f MATCHES "(PCH|QT_AUTOMOC)")
 		else()
 			string(TOLOWER "${_f}" _f)
 			if(_f MATCHES "(\\.c|\\.cc|\\.cpp|\\.cxx)")
@@ -190,6 +190,60 @@ macro(x_declare_fileinfo)
 	else()
 		set(X_CURRENT_COPY_RIGHT "${X_COPY_RIGHT_UTF8}")
 	endif()
+endmacro()
+
+# x_custom_compile(<_compiler>    #_compiler only support qrc and lrelease
+				#<INPUT src_qrc_path>
+				#<OUTPUT dst_file_path>
+				#)
+macro(x_custom_compile _compiler)
+	cmake_parse_arguments(_WCC 
+		"" 
+		"OUTPUT" 
+		"INPUT" 
+		${ARGN})
+	
+	set(_output_file ${X_OUTPUT_ROOT_DIRECOTRY}/${_WCC_OUTPUT})
+	get_filename_component(_output_path ${_output_file} PATH)
+	if(NOT IS_DIRECTORY ${_output_path})
+		if(EXISTS ${_output_path})
+			message(FATAL_ERROR "\"${_output_path}\" is file, can not make directory.")
+		endif()
+		file(MAKE_DIRECTORY ${_output_path})
+	endif()
+
+	set(_input_files)
+	foreach(_file ${_WCC_INPUT})
+		list(APPEND _input_files ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+	endforeach()
+	
+	if("!${_compiler}" STREQUAL "!qrc")
+		x_find_qt_rcc()
+
+		set(_qresource_list)
+		foreach(_file ${_input_files})
+			_x_scan_qrc(${_WCC_INPUT} X_CURRENT_PACKAGE_SRCS _res_list)
+			list(APPEND _qresource_list ${_res_list})
+		endforeach()
+		
+		add_custom_command(
+			OUTPUT ${_output_file}
+			COMMAND ${X_QT_RCC} "-binary" -no-compress ${_input_files} -o "${_output_file}"
+			DEPENDS ${_input_files} ${_qresource_list}
+			COMMENT "Compiling ${_WCC_INPUT} to ${_WCC_OUTPUT}"
+			)
+		source_group(qrc FILES ${_WCC_INPUT})
+	elseif("!${_compiler}" STREQUAL "!lrelease")
+		x_find_qt_lrelease()
+		add_custom_command(
+			OUTPUT ${_output_file}
+			COMMAND ${X_QT_LRELEASE} ${_input_files} -qm "${_output_file}"
+			DEPENDS ${_input_files}
+			)
+	else()
+		message(FATAL_ERROR "Unknown Compiler:${_compiler}!")
+	endif()
+	list(APPEND X_CURRENT_PACKAGE_RESES ${_output_file})
 endmacro()
 
 # x_end_package()
