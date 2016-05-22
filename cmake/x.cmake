@@ -406,6 +406,8 @@ endmacro()
 
 # x_final_deal()
 macro(x_final_deal)
+	_deal_link_packages()
+
 	_generate_make_bat()
 
 	string(REPLACE ";" "\n" _project_info "${X_PACKAGE_INFO_LIST}")
