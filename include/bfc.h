@@ -25,20 +25,20 @@
 #include "bfc/strapi/strapi.h"
 #include "bfc/strapi/transcode.h"
 
-// [POINTER]
-#include "bfc/pointer/ptr.h"
-
-// [OS Lite]
-#include "bfc/oslite/os_file.h"
-
 // [COM]
 #include "bfc/com/com.h"
+
+// [POINTER]
+#include "bfc/pointer/ptr.h"
 
 // [BSTR]
 #include "bfc/bstr/bstr.h"
 
 // [VARIANT]
 #include "bfc/variant/variant.h"
+
+// [OS Lite]
+#include "bfc/oslite/os_file.h"
 
 #undef __BFC_INCLUDE__
 

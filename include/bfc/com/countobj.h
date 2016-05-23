@@ -12,6 +12,8 @@
 #	error This file is not intended to be included separately
 #endif
 
+#include "../pointer/stdptr.h"
+
 _BFC_BEGIN
 
 // -------------------------------------------------------------------------
