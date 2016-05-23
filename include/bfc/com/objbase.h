@@ -21,13 +21,15 @@ STDAPI _XCoRegisterMallocSpy(LPMALLOCSPY pMallocSpy);
 STDAPI _XCoRevokeMallocSpy(void);
 STDAPI_(LPVOID) _XCoTaskMemAlloc(UINT cb);
 STDAPI_(LPVOID) _XCoTaskMemRealloc(LPVOID pv, UINT cb);
-STDAPI_(void)   _XCoTaskMemFree(LPVOID pv);
+STDAPI_(void) _XCoTaskMemFree(LPVOID pv);
+STDAPI_(UINT) _XCoTaskMemSize(LPVOID pv)
 #define CoGetMalloc(uMemContext, ppv)	_XCoGetMalloc(uMemContext, ppv)
 #define CoRegisterMallocSpy(pMallocSpy)	_XCoRegisterMallocSpy(pMallocSpy)
 #define CoRevokeMallocSpy()				_XCoRevokeMallocSpy()
 #define CoTaskMemAlloc(cb)				_XCoTaskMemAlloc(cb)
 #define CoTaskMemRealloc(pv, cb)		_XCoTaskMemRealloc(pv, cb)
 #define CoTaskMemFree(pv)				_XCoTaskMemFree(pv)
+#define CoTaskMemSize(pv)				_XCoTaskMemSize(pv)
 
 // -------------------------------------------------------------------------
 // --> guid/progid helpers
