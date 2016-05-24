@@ -404,6 +404,142 @@ macro(x_end_package)
 	set(X_PACKAGE_INFO_LIST "${X_PACKAGE_INFO_LIST}${X_CURRENT_PACKAGE_NAME}    ${X_CURRENT_PACKAGE_TYPE}    ${CMAKE_CURRENT_SOURCE_DIR};" CACHE INTERNAL "" FORCE)
 endmacro()
 
+# x_extern_package(_pkg_name _pkg_type
+#					<LOCATION _location>
+#					[IMP_LOCATION _imp_location]
+#					[BINARY_NAMES _name]
+#					[BINARY_NAMES_DEBUG _name_dbg]
+#					[BINARY_NAMES_RELEASE _name_rls]
+#					[PUBLIC_HEADER _pub_hdr]
+#					[DEPENDS ...]
+#					[SYS_LIB]
+macro(x_extern_package _pkgname _type)
+	# a bug on imported target? imported target could not referenced by other file.
+	set(_args ${ARGN})
+	cmake_parse_arguments(
+		X_EXTERN_PACKAGE 
+		"SYS_LIB"
+		"LOCATION;IMP_LOCATION"
+		"PUBLIC_HEADER;DEPENDS;BINARY_NAMES;BINARY_NAMES_DEBUG;BINARY_NAMES_RELEASE"
+		${_args}
+		)
+
+	set(_names ${X_EXTERN_PACKAGE_BINARY_NAMES} ${X_EXTERN_PACKAGE_BINARY_NAMES_${BUILD_TYPE_UPPER}})
+	if(NOT X_EXTERN_PACKAGE_IMP_LOCATION)
+		set(X_EXTERN_PACKAGE_IMP_LOCATION ${X_EXTERN_PACKAGE_LOCATION})
+	endif()
+	set(_package_destdir "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")	
+	set(_output_files)
+
+	foreach(_name ${_names})
+		if(OS_WIN)
+			set(_location "${X_EXTERN_PACKAGE_LOCATION}/${_name}.dll")
+			set(_implib "${X_EXTERN_PACKAGE_IMP_LOCATION}/${_name}.lib")
+		elseif(OS_LINUX)
+			set(_location "${X_EXTERN_PACKAGE_LOCATION}/lib${_name}.so")
+			set(_implib "${X_EXTERN_PACKAGE_IMP_LOCATION}/lib${_name}.so")
+		else()
+			message(FATAL_ERROR "Unknow platform!")
+		endif()
+		
+		if(OS_WIN AND NOT X_EXTERN_PACKAGE_SYS_LIB)
+			get_filename_component(_filename_we "${_location}" NAME_WE)
+			get_filename_component(_location_path "${_location}" PATH)
+			if(EXISTS "${_location_path}/${_filename_we}.pdb")
+				set(_setup_dbg_symbol_command COMMAND ${CMAKE_COMMAND} -E copy ${_location_path}/${_filename_we}.pdb ${_package_destdir}/${_filename_we}.pdb)
+			endif()
+		endif()
+
+		if(OS_LINUX AND NOT X_EXTERN_PACKAGE_SYS_LIB)
+			set(_so_file_name "lib${_name}.so")
+			x_find_split_symbol()
+			set(_setup_dbg_symbol_command COMMAND ${X_SPLIT_SYMBOL} ${X_SPLIT_SYMBOL_ARGS} ${_so_file_name})
+		endif()
+		
+		if("${_type}!" STREQUAL "SHARED!" OR "${_type}!" STREQUAL "MODULE!")
+			get_filename_component(_filename "${_location}" NAME)
+			if(OS_WIN)
+				set(_cp_command COMMAND ${CMAKE_COMMAND} -E copy ${_location} ${_package_destdir})
+			elseif(OS_LINUX)
+				if(NOT EXISTS ${_package_destdir})
+					file(MAKE_DIRECTORY "${_package_destdir}")
+				endif()
+				if (X_EXTERN_PACKAGE_SYS_LIB)
+					x_find_copy_syslib()
+					set(_cp_command COMMAND ${X_COPY_SYSLIB} ${_location} ${_package_destdir})
+				else()
+					set(_cp_command COMMAND cp -R ${_location}* ${_package_destdir})
+				endif()
+			else()
+				message(FATAL_ERROR "Unknow platform!")
+			endif()
+
+			if(NOT EXISTS "${_location}")
+				add_custom_command(
+					OUTPUT ${_package_destdir}/${_filename}
+					${_cp_command}
+					${_setup_dbg_symbol_command}
+					WORKING_DIRECTORY ${_package_destdir}
+					)
+			else()
+				add_custom_command(
+					OUTPUT ${_package_destdir}/${_filename}
+					${_cp_command}
+					${_setup_dbg_symbol_command}
+					WORKING_DIRECTORY ${_package_destdir}
+					MAIN_DEPENDENCY "${_location}"
+					)
+			endif()
+			
+			list(APPEND _output_files ${_package_destdir}/${_filename})
+		endif()
+	endforeach()
+	
+	if("${_type}!" STREQUAL "STATIC!")
+		add_custom_target(${_pkgname})
+	elseif("${_type}!" STREQUAL "SHARED!" OR "${_type}!" STREQUAL "MODULE!")
+		add_custom_target(
+			${_pkgname} ALL
+			DEPENDS ${_output_files}
+			)
+	else()
+		message(FATAL_ERROR "${_type} is not a valid extern package type.")
+	endif()
+
+	if(X_EXTERN_PACKAGE_DEPENDS)
+		add_dependencies(${_pkgname} ${X_EXTERN_PACKAGE_DEPENDS})
+	endif()
+
+	if(X_EXTERN_PACKAGE_PUBLIC_HEADER)
+		set_property(TARGET ${_pkgname} 
+			PROPERTY X_PUBLIC_HEADER_DIR "${X_EXTERN_PACKAGE_PUBLIC_HEADER}")
+	endif()
+
+	set_property(TARGET ${_pkgname} PROPERTY IMPORTED_LOCATION "${_location}")
+	set_property(TARGET ${_pkgname} PROPERTY IMPORTED_IMPLIB "${_implib}")
+	set_property(TARGET ${_pkgname} PROPERTY X_PACKAGE_TYPE "EXTERN")
+endmacro()
+
+# x_include_packages()
+macro(x_include_packages)
+	_args_system_filter(_cur_system_argn ${ARGN})
+	foreach(_pkg ${_cur_system_argn})
+		if(NOT TARGET ${_pkg})
+			message(FATAL_ERROR "${_pkg} is not a valid package.")
+		endif()
+		get_property(_pkg_type TARGET ${_pkg} PROPERTY X_PACKAGE_TYPE)
+		if(NOT ${_pkg_type} STREQUAL "NONE")
+			get_property(_pub_dir TARGET ${_pkg} PROPERTY X_PUBLIC_HEADER_DIR)
+			if(NOT _pub_dir)
+				message(WARNING "${_pkg} do not has public header.")
+			endif()
+			include_directories(${_pub_dir})
+			list(APPEND X_CURRENT_PACKAGE_DEPEND_PKGS ${_pkg})
+			list(APPEND X_CURRENT_PACKAGE_INCLUDE_PKG_DIRS ${_pub_dir})
+		endif()
+	endforeach()
+endmacro()
+
 # x_final_deal()
 macro(x_final_deal)
 	_deal_link_packages()
