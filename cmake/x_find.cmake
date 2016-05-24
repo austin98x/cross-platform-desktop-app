@@ -30,13 +30,13 @@ macro(x_find_copy_syslib)
 	endif()
 endmacro()
 
-# add Qt by using EXTERN_QT_PATH parameter
+# add Qt by using QT_PATH parameter
 macro(x_find_qt)
 	if(NOT X_QT_PATH)
-		if(EXISTS "${EXTERN_QT_PATH}")
-			set(X_QT_PATH "${EXTERN_QT_PATH}" CACHE FILEPATH "Qt path")
+		if(EXISTS "${QT_PATH}")
+			set(X_QT_PATH "${QT_PATH}" CACHE FILEPATH "Qt path")
 		else()
-			message(FATAL_ERROR "Can not found Qt, please add EXTERN_QT_PATH parameter}")
+			message(FATAL_ERROR "Can not found Qt, please add QT_PATH parameter}")
 		endif()
 	endif()
 endmacro()
