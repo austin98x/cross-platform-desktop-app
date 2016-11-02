@@ -8,6 +8,7 @@ x_package(bfc STATIC)
 		)
 	x_add_sources(
 		PCH stdafx.h stdafx.cpp
+		oslite/os_file.cpp
 		LINUX(
 			strapi/strapi.cpp
 			)
