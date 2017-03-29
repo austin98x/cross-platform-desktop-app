@@ -27,6 +27,10 @@ _BFC_BEGIN
 #define KS_INVALID_REFCOUNT		2147483647
 #endif
 
+#ifndef CONEW_
+#define CONEW_(ComClass)	new _BFC KCountObject<ComClass>
+#endif
+
 template <class E>
 class KCountObject : public E
 {

@@ -240,6 +240,7 @@ STDAPI_(BOOL) _XFileCanLockForRW(LPCWSTR szFileW, BOOL bWrite)
 #include <fcntl.h>
 
 // -------------------------------------------------------------------------
+#if 0
 STDAPI_(BOOL) _XIsDirExist(LPCWSTR szPathW)
 {
 	QFileInfo fileInfo(QString::fromUtf16(szFileOrDirW));
@@ -390,6 +391,7 @@ STDAPI_(BOOL) _XFileCanLockForRW(LPCWSTR szFileW, BOOL bWrite)
 	}
 	return bRet;
 }
+#endif
 
 #endif
 

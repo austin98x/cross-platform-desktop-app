@@ -261,7 +261,7 @@ typedef union _LARGE_INTEGER
 		int32_t HighPart;
 	};
 	int64_t QuadPart;
-} LARGE_INTEGER, *PLARGE_INTEGER; 
+} LARGE_INTEGER, *PLARGE_INTEGER;
 
 typedef union _ULARGE_INTEGER
 {
