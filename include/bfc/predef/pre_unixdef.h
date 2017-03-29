@@ -1,8 +1,8 @@
-// -------------------------------------------------------------------------- //
-//	File name		£º	pre_unixdef.h
-//	Author 			£º	Austin
-//	Create Time		£º	2016-2-17 11:38:45
-//	Description 	£º	Predefined macros for UNIX platform
+ï»¿// -------------------------------------------------------------------------- //
+//	File name		ï¼š	pre_unixdef.h
+//	Author 			ï¼š	Austin
+//	Create Time		ï¼š	2016-2-17 11:38:45
+//	Description 	ï¼š	Predefined macros for UNIX platform
 //
 // -------------------------------------------------------------------------- //
 
