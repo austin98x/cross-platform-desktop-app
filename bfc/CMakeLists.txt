@@ -12,6 +12,9 @@ x_package(bfc STATIC)
 		LINUX(
 			strapi/strapi.cpp
 			bstr/bstr.cpp
+			com/cocreateguid.cpp
+			com/errorinfo.cpp
+			com/guiddef.cpp
 			)
 		)
 	x_declare_fileinfo(
