@@ -16,6 +16,8 @@ x_package(bfc STATIC)
 			com/guiddef.cpp
 			errorinfo/errorinfo.cpp
 			safearray/safearray.cpp
+			variant/variant.cpp
+			variant/propvariant.cpp
 			)
 		)
 	x_declare_fileinfo(
