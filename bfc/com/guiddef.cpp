@@ -95,5 +95,5 @@ EXTERN_C __export const FMTID FMTID_VideoSummaryInformation = {0x64440491, 0x4C8
 EXTERN_C __export const FMTID FMTID_MediaFileSummaryInformation = {0x64440492, 0x4C8B, 0x11D1, {0x8B, 0x70, 0x08, 0x00, 0x36, 0xB1, 0x1A, 0x03}};
 
 // -------------------------------------------------------------------------
-void _force_link_kskern_guiddef() {}
+void _force_link_guiddef() {}
 

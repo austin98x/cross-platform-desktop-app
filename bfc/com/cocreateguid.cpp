@@ -67,5 +67,5 @@ EXPORTAPI _XCoCreateGuid(GUID FAR* pguid)
 }
 
 // -------------------------------------------------------------------------
-void _force_link_kskern_cocreateguid() {}
+void _force_link_cocreateguid() {}
 

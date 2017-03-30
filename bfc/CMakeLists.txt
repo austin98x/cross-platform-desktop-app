@@ -13,8 +13,9 @@ x_package(bfc STATIC)
 			strapi/strapi.cpp
 			bstr/bstr.cpp
 			com/cocreateguid.cpp
-			com/errorinfo.cpp
 			com/guiddef.cpp
+			errorinfo/errorinfo.cpp
+			safearray/safearray.cpp
 			)
 		)
 	x_declare_fileinfo(

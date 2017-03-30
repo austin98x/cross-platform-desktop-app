@@ -31,5 +31,5 @@ EXPORTAPI _XGetErrorInfo(UINT dwReserved, IErrorInfo **pperrinfo)
 }
 
 // -------------------------------------------------------------------------
-void _force_link_kskern_errorinfo() {}
+void _force_link_errorinfo() {}
 

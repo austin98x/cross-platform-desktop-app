@@ -25,6 +25,11 @@
 #include "bfc/strapi/strapi.h"
 #include "bfc/strapi/transcode.h"
 
+// [ALLOCTATOR]
+
+// [THREAD]
+#include "bfc/thread/thread.h"
+
 // [COM]
 #include "bfc/com/com.h"
 
@@ -33,6 +38,9 @@
 
 // [BSTR]
 #include "bfc/bstr/bstr.h"
+
+// [SAFEARRAY]
+
 
 // [VARIANT]
 #include "bfc/variant/variant.h"
