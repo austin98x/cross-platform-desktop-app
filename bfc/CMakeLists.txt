@@ -11,6 +11,7 @@ x_package(bfc STATIC)
 		oslite/os_file.cpp
 		LINUX(
 			strapi/strapi.cpp
+			bstr/bstr.cpp
 			)
 		)
 	x_declare_fileinfo(
