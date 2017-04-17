@@ -1,9 +1,29 @@
-*.zip
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
 
-*.rar
+# Precompiled Headers
+*.gch
+*.pch
 
-*.via
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
 
-*.tmp
+# Fortran module files
+*.mod
+*.smod
 
-*.err
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
