@@ -269,6 +269,11 @@ macro(_deal_sources _srcs_ref)
 	set(_wds_ts_gen)
 	_deal_ts(_wds_srcs _wds_ts_gen)
 
+	list(FIND _wds_srcs "QT_AUTOMOC" _automoc_idx)
+	if(NOT _automoc_idx EQUAL -1)
+		x_include_directories("${CMAKE_CURRENT_BINARY_DIR}/moc/${X_CURRENT_PACKAGE_NAME}")
+	endif()
+
 	set(_srcs_for_compile)
 	set(_srcs_grouped)
 	set(_group_idx 0)
@@ -294,7 +299,9 @@ macro(_deal_sources _srcs_ref)
 		endif()
 	endforeach()
 
+	list(APPEND _srcs_for_compile  ${_wds_uic_gen} ${_wds_qrc_gen} ${_wds_ts_gen})
 	set(${_srcs_ref} ${_srcs_for_compile})
+	#message(STATUS ${_srcs_for_compile})
 endmacro()
 
 macro(_deal_sources_group _srcs_ref _group_idx)
@@ -492,6 +499,7 @@ macro(_deal_pch _srcs_ref _pch_header _pch_source)
 			endforeach()
 		endif()
 	endif()
+
 	set(${_srcs_ref} ${_deal_pch_srcs})
 endmacro()
 
@@ -545,6 +553,7 @@ macro(_deal_qrc _srcs_ref _gen_ref)
 	if(_qrc_list)
 		source_group(qrc FILES ${_qrc_list})
 	endif()
+
 	set(${_srcs_ref} ${__srcs})
 endmacro()
 
