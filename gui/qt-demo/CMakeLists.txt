@@ -15,6 +15,10 @@ x_package(app EXECUTABLE)
 		mainwindow.cpp
 		mainwindow.h
 		main.cpp
+		mydialog.cpp
+		mydialog.h
+		mydialog.ui
+		application.qrc
 		)
 	x_link_packages(
 		QtCore

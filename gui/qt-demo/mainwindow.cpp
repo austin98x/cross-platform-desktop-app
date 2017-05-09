@@ -43,6 +43,7 @@
 #include <QtGui>
 
 #include "mainwindow.h"
+#include "mydialog.h"
 //! [0]
 
 //! [1]
@@ -131,10 +132,12 @@ bool MainWindow::saveAs()
 void MainWindow::about()
 //! [13] //! [14]
 {
-   QMessageBox::about(this, tr("About Application"),
-            tr("The <b>Application</b> example demonstrates how to "
-               "write modern GUI applications using Qt, with a menu bar, "
-               "toolbars, and a status bar."));
+    MyDialog dlg;
+    dlg.exec();
+   //QMessageBox::about(this, tr("About Application"),
+   //        tr("The <b>Application</b> example demonstrates how to "
+   //           "write modern GUI applications using Qt, with a menu bar, "
+   //           "toolbars, and a status bar."));
 }
 //! [14]
 
