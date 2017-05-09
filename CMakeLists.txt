@@ -6,9 +6,8 @@ project(App)
 
 include(cmake/x.cmake)
 
-#x_add_subdirectory(cmake/testcase)
-
 x_add_subdirectory(3rdparty)
 x_add_subdirectory(bfc)
+x_add_subdirectory(gui)
 
 x_final_deal()

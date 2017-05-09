@@ -30,5 +30,3 @@ x_extern_package(
 	)
 
 set(QtLibrary QtCore QtGui)
-
-#x_add_phony_target(Qt ${QtLibrary})
