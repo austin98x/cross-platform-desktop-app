@@ -1,5 +1,6 @@
-x_package(test EXECUTABLE)
+x_package(zshare SHARED)
 	x_add_definitions(
+		ZSHARE_LIB
 		)
 	x_include_directories(
 		../../include
@@ -12,13 +13,11 @@ x_package(test EXECUTABLE)
 	x_add_sources(
 		PCH stdafx.h stdafx.cpp
 		QT_AUTOMOC
-		mainwindow.cpp
-		mainwindow.h
-		main.cpp
-		mydialog.cpp
-		mydialog.h
-		mydialog.ui
-		application.qrc
+		src/zglobal.h
+		src/zapplication.cpp
+		src/zapplication.h
+		src/zmainwindow.cpp
+		src/zmainwindow.h
 		)
 	x_link_packages(
 		QtCore
