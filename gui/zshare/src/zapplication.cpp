@@ -32,6 +32,8 @@ void ZApplication::SetupXmlUserface(const QString& xmlFile)
 
 void ZApplication::SetupAppInfo(const QString& name, const QString& version, const QIcon& icon)
 {
+	this->setOrganizationDomain("www.xxx.com");
+	this->setOrganizationName("xxx");
 	this->setApplicationName(name);
 	this->setApplicationVersion(version);
 	this->setWindowIcon(icon);

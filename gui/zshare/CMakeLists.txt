@@ -9,6 +9,7 @@ x_package(zshare SHARED)
 	x_include_packages(
 		QtCore
 		QtGui
+		QtXml
 		)
 	x_add_sources(
 		PCH stdafx.h stdafx.cpp
@@ -18,10 +19,13 @@ x_package(zshare SHARED)
 		src/zapplication.h
 		src/zmainwindow.cpp
 		src/zmainwindow.h
+		src/zdom.cpp
+		src/zdom.h
 		)
 	x_link_packages(
 		QtCore
 		QtGui
+		QtXml
 		bfc
 		)
 x_end_package()

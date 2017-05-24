@@ -29,4 +29,15 @@ x_extern_package(
 	X_ADD_INSTALL
 	)
 
-set(QtLibrary QtCore QtGui)
+x_extern_package(
+	QtXml SHARED
+	LOCATION ${X_QT_PATH}/lib
+	BINARY_NAMES_DEBUG QtXml${_dbg_suffix}
+	BINARY_NAMES_RELEASE QtXml${_rls_suffix}
+	PUBLIC_HEADER ${X_QT_PATH}/include
+				  ${X_QT_PATH}/include/QtXml
+	DEPENDS QtCore
+	X_ADD_INSTALL
+	)
+
+set(QtLibrary QtCore QtGui QtXml)
