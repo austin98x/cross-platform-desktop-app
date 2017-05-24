@@ -21,6 +21,10 @@ x_package(zshare SHARED)
 		src/zmainwindow.h
 		src/zdom.cpp
 		src/zdom.h
+		src/zuiconfig.cpp
+		src/zuiconfig.h
+		src/zuiattributeparser.cpp
+		src/zuiattributeparser.h
 		)
 	x_link_packages(
 		QtCore
