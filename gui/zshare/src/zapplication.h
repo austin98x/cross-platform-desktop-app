@@ -3,6 +3,8 @@
 
 #include "zglobal.h"
 
+class ZUiConfigure;
+
 #define ZApplicationBase QApplication
 
 class Z_EXPORT ZApplication : public ZApplicationBase
@@ -16,6 +18,12 @@ public:
 	void SetupTranslator();
 	void SetupXmlUserface(const QString& xmlFile);
 	void SetupAppInfo(const QString& name, const QString& version, const QIcon& icon);
+
+	void setUiConfigure(ZUiConfigure* ui);
+	ZUiConfigure* getUiConfigure();
+
+private:
+	ZUiConfigure* m_pUiconfig;
 };
 
 #define zApp ((ZApplication *)qApp)
